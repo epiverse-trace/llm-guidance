@@ -27,24 +27,23 @@ knitr::opts_chunk$set(
 [![lifecycle-concept](https://raw.githubusercontent.com/reconverse/reconverse.github.io/master/images/badge-concept.svg)](https://www.reconverse.org/lifecycle.html#concept) 
 <!-- badges: end -->
 
-{{ packagename }} provides functions to ....
-
-<!-- This sentence is optional and can be removed -->
-{{ packagename }} is developed at the [CENTER|similar](url) at the [UNIVERSITY|similar](url) as part of the [Epiverse-TRACE program](https://data.org/initiatives/epiverse/).
+This repository provides a concept of a Shiny application to explore use of LLMs to provide guidance on packages and documentation. See the [discussion board](https://github.com/orgs/epiverse-trace/discussions/75) for more information on the concept, as well as the issues page for current design ideas.
 
 ## Installation
 
-You can install the development version of {{ packagename }} from
-[GitHub](https://github.com/) with:
+You can run a local version of the Shiny app (stored as `app.R`) with the following code:
 
 ``` r
-# install.packages("pak")
-pak::pak("{{ gh_repo }}")
+library(shiny); library(rsconnect)
+setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/R")
+runApp()
 ```
+
+You will need an OpenAI API to run the app. The app sources your local credentials from `data/credentials.csv`, where the `value` column gives the key.
 
 ## Example
 
-These examples illustrate some of the current functionalities
+The `R_not_run/generate_doc_embeddings.R` script runs LLM embeddings for local repositories (currently this points to: `~/Documents/GitHub/epiverse-trace/` ).
 
 
 ## Development
@@ -63,6 +62,6 @@ Contributions are welcome via [pull requests](https://github.com/{{ gh_repo }}/p
 
 ### Code of Conduct
 
-Please note that the {{ packagename }} project is released with a 
+Please note that this project is released with a 
 [Contributor Code of Conduct](https://github.com/epiverse-trace/.github/blob/main/CODE_OF_CONDUCT.md).
 By contributing to this project, you agree to abide by its terms.
