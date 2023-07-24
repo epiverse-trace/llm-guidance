@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# {{ packagename }} <img src="man/figures/logo.svg" align="right" width="120" />
+<!-- # {{ packagename }} <img src="man/figures/logo.svg" align="right" width="120" /> -->
 
 <!-- badges: start -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit/)
@@ -39,7 +39,7 @@ setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/R")
 runApp()
 ```
 
-You will need an OpenAI API to run the app. The app sources your local credentials from `data/credentials.csv`, where the `value` column gives the key.
+You will need an [OpenAI API account](https://platform.openai.com/) to run the app. The app sources your stored local credentials from `data/credentials.csv`, where the `value` column defines the API key.
 
 ## Example
 
