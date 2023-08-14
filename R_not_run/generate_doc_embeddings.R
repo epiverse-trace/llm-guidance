@@ -8,7 +8,7 @@ library(stringr)
 library(readr)
 library(tools)
 
-setwd("~/Documents/GitHub/epiverse-llm/")
+setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/")
 
 credential_load <- read.csv("data/credentials.csv")
 
@@ -24,14 +24,14 @@ package_descriptions_trace <- package_descriptions |> dplyr::filter(trace_extern
 
 # Generate embeddings -----------------------------------------------------
 
-# Load files and chunk
+# Load files and chunk into segments of length `chunk_length`
 
-load_and_chunk(package_descriptions_trace$value)
+load_and_chunk(package_descriptions_trace$value,chunk_length=4000)
 
 generate_embeddings()
 
 
-# Old code for answer generation -----------------------------------------------------
+# Unused code for answer generation -----------------------------------------------------
 
 # Number of questions and answers to generate:
 # n_questions <- 10

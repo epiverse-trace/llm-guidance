@@ -56,7 +56,7 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
 
 # Load iterate over packages and chunk -----------------------------------------
 
-load_and_chunk <- function(package_list){
+load_and_chunk <- function(package_list,chunk_length=4000){
   
   # DEBUG: package_list <- package_descriptions_trace$value
   
@@ -70,7 +70,7 @@ load_and_chunk <- function(package_list){
     
     if(!is.null(get_text$text_out)){
       # Chunk text
-      chunk_text <- split_string(get_text$text_out)
+      chunk_text <- split_string(get_text$text_out,chunk_length)
     
       # Store package names and chunks
       list_names <- c(list_names,rep(ii,length(chunk_text)))
@@ -95,10 +95,10 @@ generate_embeddings <- function(){
   list_names <- read_rds("data/chunked_text/package_names.rds")
   list_chunks <- read_rds("data/chunked_text/package_chunks.rds")
   
-  # Define Open AI embedding vector size
+  # Define OpenAI embedding vector size
   total_chunks <- length(list_chunks)
   
-  embed_size <- 1536
+  embed_size <- 1536 # Based on OpenAI embedding vector length
   store_embeddings <- matrix(NA,nrow=total_chunks,embed_size)
   pb <- txtProgressBar(1,total_chunks,style=3,title="Embedding:")
   
