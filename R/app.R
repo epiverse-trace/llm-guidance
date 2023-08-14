@@ -16,10 +16,16 @@ library(shinythemes)
 library(lsa) 
 library(markdown)
 
-wait_screen <- tagList(
-  spin_orbiter(),
-  h4("Generating suggestion...")
+wait_screen1 <- tagList(
+  spin_orbiter(), h4("Generating suggestion...")
 )
+
+wait_screen2 <- tagList(
+  spin_orbiter(), h4("Generating code...")
+)
+
+# Run locally
+# library(shiny); library(rsconnect); setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/R"); runApp()
 
 # Plotting and helper functions ------------------------------------------------------------------
 
@@ -130,7 +136,7 @@ server <- function(input, output, session) {
   # Output LLM completion
   observeEvent(input$question_button,{
 
-    waiter_show(html = wait_screen,color="#b7c9e2")
+    waiter_show(html = wait_screen1,color="#b7c9e2")
     
     # Test with query
     query_text <-  input$question_text
@@ -166,6 +172,25 @@ server <- function(input, output, session) {
     
     context_text <- paste(package_chunks[sort(best_entries_for_package)],collapse="\n")
 
+    
+    # Render response for package
+    output$api_response_name <- renderText({ pick_package })
+    
+    best_match <- package_descriptions |> dplyr::filter(value==pick_package)
+    
+    output$api_response_description <- renderText({ best_match$description })
+    
+    output$api_response_link <- renderUI({
+      tags$a(href = best_match$link, "Go to package", target = "_blank")
+    })
+    
+    # Switch to second waiter
+    waiter_hide()
+    shinyjs::show("output-response1")
+    shinyjs::show("output-response2")
+    
+    waiter_show(id="output-response2",html=wait_screen2,color="#80a0cc")
+    
     # Generate answer
     llm_completion_med <- create_chat_completion(
       model = "gpt-4", # "text-davinci-003", #gpt-3.5-turbo
@@ -180,19 +205,6 @@ server <- function(input, output, session) {
       max_tokens = 1500
     )
     
-    # Render response for package
-    output$api_response_name <- renderText({ pick_package })
-    
-    best_match <- package_descriptions |> dplyr::filter(value==pick_package)
-    
-    output$api_response_description <- renderText({ best_match$description })
-    
-    output$api_response_link <- renderUI({
-      tags$a(href = best_match$link, "Go to package", target = "_blank")
-    })
-    
-    # Render response to question
-    
     # Extract response
     generated_a <- llm_completion_med$choices$message.content
 
@@ -202,12 +214,9 @@ server <- function(input, output, session) {
     output$generated_answer <- renderUI({
       HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
     })
+    
+    waiter_hide(id="output-response2")
 
-    
-    shinyjs::show("output-response1")
-    shinyjs::show("output-response2")
-    
-    waiter_hide()
     
   })
 
