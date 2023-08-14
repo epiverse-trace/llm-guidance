@@ -21,7 +21,7 @@ wait_screen1 <- tagList(
 )
 
 wait_screen2 <- tagList(
-  spin_orbiter(), h4("Generating code...")
+  spin_orbiter() #, h4("Generating code...")
 )
 
 # Run locally
@@ -77,6 +77,7 @@ ui <- fluidPage(
 
     # Text input
     div(
+      id="question-box",
       class = "well",
       div(class = "text-center",
         textAreaInput( 
@@ -129,14 +130,16 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  # Store vignette text
-  vignette_text <- reactiveVal("")
+  # Store text
+  package_name <- reactiveVal("")
+  package_text <- reactiveVal("")
+  package_link <- reactiveVal("")
   
 
   # Output LLM completion
   observeEvent(input$question_button,{
 
-    waiter_show(html = wait_screen1,color="#b7c9e2")
+    waiter_show(html = wait_screen1,color="#b7c9e2") #) #id="question-box",
     
     # Test with query
     query_text <-  input$question_text
@@ -174,26 +177,28 @@ server <- function(input, output, session) {
 
     
     # Render response for package
+    best_match <- package_descriptions |> dplyr::filter(value==pick_package)
+
+    # package_name(pick_package)
+    # package_text()
+    # package_link()
+    
     output$api_response_name <- renderText({ pick_package })
     
-    best_match <- package_descriptions |> dplyr::filter(value==pick_package)
-    
-    output$api_response_description <- renderText({ best_match$description })
+    output$api_response_description <- renderText({ best_match$description})
     
     output$api_response_link <- renderUI({
       tags$a(href = best_match$link, "Go to package", target = "_blank")
     })
     
     # Switch to second waiter
-    waiter_hide()
-    shinyjs::show("output-response1")
-    shinyjs::show("output-response2")
+
     
-    waiter_show(id="output-response2",html=wait_screen2,color="#80a0cc")
+    #waiter_show(id="output-response2",html=wait_screen2,color="#80a0cc")
     
     # Generate answer
     llm_completion_med <- create_chat_completion(
-      model = "gpt-4", # "text-davinci-003", #gpt-3.5-turbo
+      model = "gpt-4", #"gpt-4", # "text-davinci-003", #gpt-3.5-turbo
       messages = list(list("role"="system","content" = intro_prompt_sys),
                       list("role"="user","content" = paste0(intro_prompt,
                                                             "Context: ",context_text,
@@ -202,24 +207,27 @@ server <- function(input, output, session) {
       ),
       temperature = 0,
       openai_api_key = credential_load$value,
-      max_tokens = 1500
+      max_tokens = 1000
     )
     
     # Extract response
     generated_a <- llm_completion_med$choices$message.content
 
     # Generate UI object with includeMarkdown
-    output$generated_answer <- renderText({ generated_a })
-    
+    # output$generated_answer <- renderText({ generated_a })
+    # 
     output$generated_answer <- renderUI({
       HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
     })
     
-    waiter_hide(id="output-response2")
 
+    shinyjs::show("output-response1")
+    shinyjs::show("output-response2")
+
+    waiter_hide()
     
   })
-
+  
   
 } # END SERVER
 
