@@ -168,7 +168,7 @@ server <- function(input, output, session) {
 
     # Generate answer
     llm_completion_med <- create_chat_completion(
-      model = "gpt-3.5-turbo", # "text-davinci-003", #gpt-3.5-turbo-16k
+      model = "gpt-4", # "text-davinci-003", #gpt-3.5-turbo
       messages = list(list("role"="system","content" = intro_prompt_sys),
                       list("role"="user","content" = paste0(intro_prompt,
                                                             "Context: ",context_text,
@@ -177,7 +177,7 @@ server <- function(input, output, session) {
       ),
       temperature = 0,
       openai_api_key = credential_load$value,
-      max_tokens = 800
+      max_tokens = 1500
     )
     
     # Render response for package
