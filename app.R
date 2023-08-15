@@ -25,7 +25,7 @@ wait_screen2 <- tagList(
 )
 
 # Run locally
-# library(shiny); library(rsconnect); setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/R"); runApp()
+# library(shiny); library(rsconnect); setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/"); runApp()
 
 # Plotting and helper functions ------------------------------------------------------------------
 
