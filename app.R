@@ -30,20 +30,20 @@ wait_screen2 <- tagList(
 # Plotting and helper functions ------------------------------------------------------------------
 
 # Load credentials
-credential_load <- read.csv("../data/credentials.csv")
+credential_load <- read.csv("data/credentials.csv")
 
 # Load package list and descriptions
-package_list <- read.csv("../data/package_list.csv")
-package_descriptions <- read.csv("../data/package_descriptions.csv")
+package_list <- read.csv("data/package_list.csv")
+package_descriptions <- read.csv("data/package_descriptions.csv")
 
 # Load prompt intro
-intro_prompt_sys <- read_file("../data/intro_prompt_sys.txt")
-intro_prompt <- read_file("../data/intro_prompt_answer.txt")
+intro_prompt_sys <- read_file("data/intro_prompt_sys.txt")
+intro_prompt <- read_file("data/intro_prompt_answer.txt")
 
 # Load pre-prepped embeddings and text chunks
-package_names <- read_rds("../data/chunked_text/package_names.rds")
-package_chunks <- read_rds("../data/chunked_text/package_chunks.rds") |> unlist()
-package_embeddings <- read_rds("../data/embeddings/package_chunk_embeddings.rds")
+package_names <- read_rds("data/chunked_text/package_names.rds")
+package_chunks <- read_rds("data/chunked_text/package_chunks.rds") |> unlist()
+package_embeddings <- read_rds("data/embeddings/package_chunk_embeddings.rds")
 
 # App UI ------------------------------------------------------------------
 
