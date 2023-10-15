@@ -33,7 +33,7 @@ wait_screen2 <- tagList(
 credential_load <- read.csv("data/credentials.csv")
 
 # Load package list and descriptions
-package_list <- read.csv("data/package_list.csv")
+# package_list <- read.csv("data/package_list.csv") # deprecatex
 package_descriptions <- read.csv("data/package_descriptions.csv")
 
 # Load prompt intro

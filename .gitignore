@@ -52,4 +52,4 @@ rsconnect/
 .DS_Store
 
 # API credentials
-data/credentials.csv
+credentials.csv
