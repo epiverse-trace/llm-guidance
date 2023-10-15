@@ -11,4 +11,4 @@ setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/demo/package_app")
 runApp()
 
 # Deploy test app
-deployApp(account = "kucharski", appName = "main",lint=F) 
+deployApp(account = "kucharski", appName = "package_search",lint=F)

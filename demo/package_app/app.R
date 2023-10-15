@@ -24,9 +24,6 @@ wait_screen2 <- tagList(
   spin_orbiter() #, h4("Generating code...")
 )
 
-# Run locally
-# library(shiny); library(rsconnect); setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/"); runApp()
-
 # Plotting and helper functions ------------------------------------------------------------------
 
 # Load credentials
@@ -66,14 +63,14 @@ ui <- fluidPage(
     style = "width: 600px; max-width: 100%; margin: 0 auto;",
   
     # Header
-    div(
-      class = "well",
-      div(class = "text-center",
-          h3("Suggest relevant packages and functions for outbreak analytics tasks"),
-          br(),
-          p(strong("Note: this dashboard is under development, so generated outputs are likely to have errors"))
-      )
-    ),
+    # div(
+    #   class = "well",
+    #   div(class = "text-center",
+    #       h3("Suggest relevant packages and functions for outbreak analytics tasks"),
+    #       br(),
+    #       p(strong("Note: this dashboard is under development, so generated outputs are likely to have errors"))
+    #   )
+    # ),
 
     # Text input
     div(
@@ -84,9 +81,9 @@ ui <- fluidPage(
         inputId     = "question_text",
         label       = "What task would you like to do?",
         placeholder = "Enter text",
-        height = "150px"
+        height = "100px"
       ),
-      actionButton("question_button","Generate suggestion",class="btn-primary")
+      actionButton("question_button","Search packages",class="btn-primary")
       )
     )
   ),
@@ -106,21 +103,22 @@ ui <- fluidPage(
     ),
   
   # Output response
-  hidden(
-    div(id = "output-response2",style = "width: 600px; max-width: 100%; margin: 0 auto;",
-        div(
-          class = "well",
-          p(strong("Suggested functions:")),
-          #textOutput("generated_answer")
-          uiOutput("generated_answer")
-        )
-    )
-  ),
-  div(class = "text-center",
-      br(),
-      p(em("Output generated using the OpenAI API."))
-  )
-  
+  # hidden(
+  #   div(id = "output-response2",style = "width: 600px; max-width: 100%; margin: 0 auto;",
+  #       div(
+  #         class = "well",
+  #         p(strong("Suggested functions:")),
+  #         #textOutput("generated_answer")
+  #         uiOutput("generated_answer")
+  #       )
+  #   )
+  # ),
+  # 
+  # div(class = "text-center",
+  #     br(),
+  #     p(em("Output generated using the OpenAI API."))
+  # )
+  # 
 
     
   
@@ -151,14 +149,15 @@ server <- function(input, output, session) {
       input = query_text,
       openai_api_key = credential_load$value,
     )
+  
     
     # Define embedding vector for query
     query_vec <- query_embedding$data$embedding[[1]]
-    
+
     # Match to closest resources
     cosine_sim <- apply(package_embeddings,1,function(x){lsa::cosine(x,query_vec)})
     sort_sim <- base::order(cosine_sim,decreasing=T)
-    
+
     # Find top matches and choose package:
     n_match <- 5
     top_pick <- sort_sim[1:n_match]
@@ -167,6 +166,7 @@ server <- function(input, output, session) {
 
     # Extract top entries from best matching packages
     package_match <- which(package_names==pick_package)
+
 
     # Extract top matches in order, and select this number (or maximum, whichever smaller)
     match_to_ranking <- match(sort_sim,package_match); match_to_ranking <- match_to_ranking[!is.na(match_to_ranking)]
@@ -197,32 +197,32 @@ server <- function(input, output, session) {
     #waiter_show(id="output-response2",html=wait_screen2,color="#80a0cc")
     
     # Generate answer
-    llm_completion_med <- create_chat_completion(
-      model = "gpt-4", #"gpt-4", # "text-davinci-003", #gpt-3.5-turbo
-      messages = list(list("role"="system","content" = intro_prompt_sys),
-                      list("role"="user","content" = paste0(intro_prompt,
-                                                            "Context: ",context_text,
-                                                            "Question: ",query_text,
-                                                            "Answer:"))
-      ),
-      temperature = 0,
-      openai_api_key = credential_load$value,
-      max_tokens = 1000
-    )
-    
-    # Extract response
-    generated_a <- llm_completion_med$choices$message.content
-
-    # Generate UI object with includeMarkdown
-    # output$generated_answer <- renderText({ generated_a })
+    # llm_completion_med <- create_chat_completion(
+    #   model = "gpt-4", #"gpt-4", # "text-davinci-003", #gpt-3.5-turbo
+    #   messages = list(list("role"="system","content" = intro_prompt_sys),
+    #                   list("role"="user","content" = paste0(intro_prompt,
+    #                                                         "Context: ",context_text,
+    #                                                         "Question: ",query_text,
+    #                                                         "Answer:"))
+    #   ),
+    #   temperature = 0,
+    #   openai_api_key = credential_load$value,
+    #   max_tokens = 1000
+    # )
     # 
-    output$generated_answer <- renderUI({
-      HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
-    })
+    # # Extract response
+    # generated_a <- llm_completion_med$choices$message.content
+    # 
+    # # Generate UI object with includeMarkdown
+    # # output$generated_answer <- renderText({ generated_a })
+    # # 
+    # output$generated_answer <- renderUI({
+    #   HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
+    # })
     
 
     shinyjs::show("output-response1")
-    shinyjs::show("output-response2")
+    #shinyjs::show("output-response2")
 
     waiter_hide()
     
