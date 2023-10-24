@@ -43,7 +43,7 @@ You will need an [OpenAI API account](https://platform.openai.com/) to run the a
 
 ## Example
 
-The `R/generate_doc_embeddings.R` script runs LLM embeddings for local repositories (currently this points to: `~/Documents/GitHub/epiverse-trace/` ).
+The `scripts/generate_doc_embeddings.R` script runs LLM embeddings for local repositories (currently this points to: `~/Documents/GitHub/epiverse-trace/` ).
 
 
 ## Development
