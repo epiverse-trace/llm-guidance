@@ -39,8 +39,8 @@ run the app. The app sources your stored local credentials from
 
 ## Example
 
-The `R/generate_doc_embeddings.R` script runs LLM embeddings for local
-repositories (currently this points to:
+The `scripts/generate_doc_embeddings.R` script runs LLM embeddings for
+local repositories (currently this points to:
 `~/Documents/GitHub/epiverse-trace/` ).
 
 ## Development
