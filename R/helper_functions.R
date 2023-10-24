@@ -72,7 +72,7 @@ load_and_chunk <- function(package_list,chunk_length=4000){
 
   # Iterate over packages
   for(ii in package_list){
-    
+
     get_text <- load_text_from_package(ii)
     
     if(!is.null(get_text$text_out)){

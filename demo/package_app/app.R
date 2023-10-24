@@ -148,7 +148,7 @@ server <- function(input, output, session) {
     # Test with query
     query_text <-  input$question_text
     
-    # DEBUG: query_text <- "Simulate an epidemic"
+    # DEBUG: query_text <- "case of full immunization being after death date"
     
     query_embedding <- create_embedding(
       model = "text-embedding-ada-002",
@@ -164,11 +164,11 @@ server <- function(input, output, session) {
     cosine_sim <- apply(package_embeddings,1,function(x){lsa::cosine(x,query_vec)})
     sort_sim <- base::order(cosine_sim,decreasing=T)
 
-    # Find top matches and choose package:
+    # Find top matches and choose top package (otherwise penalises by documentation volume):
     n_match <- 5
     top_pick <- sort_sim[1:n_match]
     top_packages <- package_names[top_pick]
-    pick_package <- names(which.max(table(top_packages))) 
+    pick_package <- top_packages[1] #names(which.max(table(top_packages))) 
 
     # Extract top entries from best matching packages
     package_match <- which(package_names==pick_package)
