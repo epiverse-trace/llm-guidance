@@ -75,7 +75,7 @@ ui <- fluidPage(
     # Text input
     div(
       id="question-box",
-      class = "well",
+      class = "well",style = "height: 300px;",
       div(class = "text-center",
         textAreaInput( 
         inputId     = "question_text",
@@ -92,14 +92,20 @@ ui <- fluidPage(
     hidden(
       div(id = "output-response1",style = "width: 600px; max-width: 100%; margin: 0 auto;",
         div(
-          class = "well",
-          p(strong("Suggested package:"),verbatimTextOutput("api_response_name")),
+          class = "well",style = "height: 300px;",
+          strong(textOutput("user_question")),
+          verbatimTextOutput("api_response_name"),
           textOutput("api_response_description"),
           br(),
-          uiOutput("api_response_link")
+          fluidRow(
+            column(width = 6, uiOutput("api_response_link")),
+            column(width = 6, 
+                   div(style = "text-align: right;",
+                       actionButton("return_button","< Search again",class="btn-primary"))
+            )
+          )
         )
-      ),
-      br()
+      )
     ),
   
   # Output response
@@ -183,12 +189,14 @@ server <- function(input, output, session) {
     # package_text()
     # package_link()
     
+    output$user_question <- renderText({ paste0("You wrote: \"", query_text,"\". Here's a suggested package:") })
+    
     output$api_response_name <- renderText({ pick_package })
     
     output$api_response_description <- renderText({ best_match$description})
     
     output$api_response_link <- renderUI({
-      tags$a(href = best_match$link, "Go to package", target = "_blank")
+      tags$a(href = best_match$link, "Go to package website", target = "_blank")
     })
     
     # Switch to second waiter
@@ -222,11 +230,20 @@ server <- function(input, output, session) {
     
 
     shinyjs::show("output-response1")
-    #shinyjs::show("output-response2")
+    shinyjs::hide("package-explorer")
 
     waiter_hide()
     
   })
+  
+  # Revert to question
+  observeEvent(input$return_button,{
+    
+    shinyjs::hide("output-response1")
+    shinyjs::show("package-explorer")
+    
+  })
+    
   
   
 } # END SERVER
