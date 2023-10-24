@@ -23,8 +23,9 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
   # Define file path
   file_path <- paste0(base_path,package_name,"/")
   
-  # Set up text vector
+  # Set up text vector and storage of specific functions
   store_text <- NULL
+  store_name <- NULL
   
   # Load text from vignettes (if available)
   if(file.exists(paste0(file_path,"vignettes")) ){
@@ -34,6 +35,7 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
     
     for(ii in files_vignette){
       store_text <- paste(store_text,read_file(paste0(file_path,"vignettes/",ii)))
+      store_name <- c(store_name,ii)
     }
     
   }
@@ -87,7 +89,7 @@ load_and_chunk <- function(package_list,chunk_length=4000){
   
   write_rds(list_names,paste0("data/chunked_text/package_names.rds"))
   write_rds(list_chunks,paste0("data/chunked_text/package_chunks.rds"))
-  
+
   
 }
 
