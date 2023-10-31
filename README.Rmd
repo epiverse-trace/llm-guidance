@@ -35,7 +35,7 @@ You can run a local version of the Shiny app (stored as `app.R`) with the follow
 
 ``` r
 library(shiny); library(rsconnect)
-setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/R")
+setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/demo/package_app/")
 runApp()
 ```
 
@@ -43,7 +43,7 @@ You will need an [OpenAI API account](https://platform.openai.com/) to run the a
 
 ## Example
 
-The `R_not_run/generate_doc_embeddings.R` script runs LLM embeddings for local repositories (currently this points to: `~/Documents/GitHub/epiverse-trace/` ).
+The `scripts/generate_doc_embeddings.R` script runs LLM embeddings for local repositories (currently this points to: `~/Documents/GitHub/epiverse-trace/` ).
 
 
 ## Development

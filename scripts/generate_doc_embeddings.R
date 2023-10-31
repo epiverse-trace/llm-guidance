@@ -13,13 +13,13 @@ setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/")
 credential_load <- read.csv("data/credentials.csv")
 
 # Load helper functions
-source("R_not_run/helper_functions.R")
+source("R/helper_functions.R")
 
 # Load prompt for question generation
-intro_prompt <- read_file("data/intro_prompt_answer.txt")
+#intro_prompt <- read_file("data/intro_prompt_answer.txt") # deprecated
 
 # Load list of packages and descriptions
-package_descriptions <- read.csv("data/package_descriptions.csv")
+package_descriptions <- read.csv("demo/package_app/data/package_descriptions.csv")
 package_descriptions_trace <- package_descriptions |> dplyr::filter(trace_external=="trace")
 
 # Generate embeddings -----------------------------------------------------

@@ -18,25 +18,14 @@ split_string <- function(input_string, max_length = 2000) {
 
 load_text_from_package <- function(package_name="finalsize",base_path="~/Documents/GitHub/epiverse-trace/"){
   
-  #DEBUG package_name="datadelay"
+  #DEBUG package_name="finalsize"; base_path="~/Documents/GitHub/epiverse-trace/"
   
   # Define file path
   file_path <- paste0(base_path,package_name,"/")
   
-  # Set up text vector
+  # Set up text vector and storage of specific functions
   store_text <- NULL
-  
-  # Load text from function files if available
-  files_R <- list.files(paste0(file_path,"R"))
-  files_R <- files_R[file_ext(files_R)=="R"]
-  
-  if(file.exists(paste0(file_path,"R")) ){
-  
-    for(ii in files_R){
-      store_text <- paste(store_text,read_file(paste0(file_path,"R/",ii)))
-    }
-    
-  }
+  store_name <- NULL
   
   # Load text from vignettes (if available)
   if(file.exists(paste0(file_path,"vignettes")) ){
@@ -46,9 +35,27 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
     
     for(ii in files_vignette){
       store_text <- paste(store_text,read_file(paste0(file_path,"vignettes/",ii)))
+      store_name <- c(store_name,ii)
     }
     
   }
+  
+  # Load text from function files if available
+  files_R <- list.files(paste0(file_path,"R"))
+  files_R <- files_R[file_ext(files_R)=="R"]
+  
+  if(file.exists(paste0(file_path,"R")) ){
+    
+    for(ii in files_R){
+      store_text <- paste(store_text,read_file(paste0(file_path,"R/",ii)))
+    }
+    
+  }
+  
+  # If want single package output
+  #write_lines(store_text, paste0("data/chunked_text/",package_name, ".md"))
+  #write_csv(data.frame(store_text), paste0("data/chunked_text/",package_name, ".csv"))
+  
   
   list(package = package_name, text_out = store_text)
   
@@ -65,7 +72,7 @@ load_and_chunk <- function(package_list,chunk_length=4000){
 
   # Iterate over packages
   for(ii in package_list){
-    
+
     get_text <- load_text_from_package(ii)
     
     if(!is.null(get_text$text_out)){
@@ -82,7 +89,7 @@ load_and_chunk <- function(package_list,chunk_length=4000){
   
   write_rds(list_names,paste0("data/chunked_text/package_names.rds"))
   write_rds(list_chunks,paste0("data/chunked_text/package_chunks.rds"))
-  
+
   
 }
 
