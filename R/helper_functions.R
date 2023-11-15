@@ -16,9 +16,15 @@ split_string <- function(input_string, max_length = 2000) {
 
 # Load text from package -----------------------------------------
 
-load_text_from_package <- function(package_name="finalsize",base_path="~/Documents/GitHub/epiverse-trace/"){
+load_text_from_package <- function(package_name="finalsize",package_type="trace",chunk_length=4000){
   
-  #DEBUG package_name="finalsize"; base_path="~/Documents/GitHub/epiverse-trace/"
+  #DEBUG package_name="incidence2"; package_type="external"; base_path="~/Documents/GitHub/epiverse-trace/"
+  
+  if(package_type=="trace"){
+    base_path="~/Documents/GitHub/epiverse-trace/"
+  }else{
+    base_path="~/Documents/GitHub/"
+  }
   
   # Define file path
   file_path <- paste0(base_path,package_name,"/")
@@ -26,6 +32,7 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
   # Set up text vector and storage of specific functions
   store_text <- NULL
   store_name <- NULL
+  store_chunks <- list()
   
   # Load text from vignettes (if available)
   if(file.exists(paste0(file_path,"vignettes")) ){
@@ -34,8 +41,15 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
     files_vignette <- files_vignette[file_ext(files_vignette)=="Rmd"] # remove non-Rmd
     
     for(ii in files_vignette){
-      store_text <- paste(store_text,read_file(paste0(file_path,"vignettes/",ii)))
-      store_name <- c(store_name,ii)
+      text_ii <- read_file(paste0(file_path,"vignettes/",ii))
+      
+      # Get number of chunks
+      chunk_text <- split_string(text_ii,chunk_length)
+      store_chunks <- c(store_chunks,chunk_text)
+      n_chunk <- length(chunk_text)
+      
+      #store_text <- paste(store_text,rep(text_ii,n_chunk) )
+      store_name <- c(store_name,rep(ii,n_chunk))
     }
     
   }
@@ -47,7 +61,15 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
   if(file.exists(paste0(file_path,"R")) ){
     
     for(ii in files_R){
-      store_text <- paste(store_text,read_file(paste0(file_path,"R/",ii)))
+      text_ii <- read_file(paste0(file_path,"R/",ii))
+
+      
+      chunk_text <- split_string(text_ii,chunk_length)
+      store_chunks <- c(store_chunks,chunk_text)
+      n_chunk <- length(chunk_text)
+      
+      #store_text <- paste(store_text,text_ii)
+      store_name <- c(store_name,rep(ii,n_chunk))
     }
     
   }
@@ -57,7 +79,7 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
   #write_csv(data.frame(store_text), paste0("data/chunked_text/",package_name, ".csv"))
   
   
-  list(package = package_name, text_out = store_text)
+  list(package = package_name, name_out = store_name, text_out = store_chunks)
   
 }
 
@@ -65,29 +87,30 @@ load_text_from_package <- function(package_name="finalsize",base_path="~/Documen
 
 load_and_chunk <- function(package_list,chunk_length=4000){
   
-  # DEBUG: package_list <- package_descriptions_trace$value
+  # DEBUG: package_list <- package_descriptions_trace
   
   list_names <- NULL
+  list_functions <- NULL
   list_chunks <- list()
 
   # Iterate over packages
-  for(ii in package_list){
+  for(ii in 1:nrow(package_list)){
 
-    get_text <- load_text_from_package(ii)
+    get_text <- load_text_from_package(package_list[ii,"value"],package_list[ii,"trace_external"],chunk_length)
     
     if(!is.null(get_text$text_out)){
-      # Chunk text
-      chunk_text <- split_string(get_text$text_out,chunk_length)
-    
+
       # Store package names and chunks
-      list_names <- c(list_names,rep(ii,length(chunk_text)))
-      list_chunks <- append(list_chunks,chunk_text)
+      list_names <- c(list_names,rep(get_text$package,length(get_text$name_out)))
+      list_functions <- c(list_functions,get_text$name_out)
+      list_chunks <- append(list_chunks,get_text$text_out)
     }
     
   }
   
   
   write_rds(list_names,paste0("data/chunked_text/package_names.rds"))
+  write_rds(list_functions,paste0("data/chunked_text/package_functions.rds"))
   write_rds(list_chunks,paste0("data/chunked_text/package_chunks.rds"))
 
   
@@ -99,7 +122,8 @@ load_and_chunk <- function(package_list,chunk_length=4000){
 generate_embeddings <- function(){
   
   # Load files
-  list_names <- read_rds("data/chunked_text/package_names.rds")
+  #list_names <- read_rds("data/chunked_text/package_names.rds")
+  #list_functions <- read_rds("data/chunked_text/package_functions.rds")
   list_chunks <- read_rds("data/chunked_text/package_chunks.rds")
   
   # Define OpenAI embedding vector size
@@ -135,3 +159,67 @@ generate_embeddings <- function(){
   
   
 }
+
+
+
+# Run embeddings -----------------------------------------
+
+generate_embeddings_tags <- function(){
+  
+  embed_size <- 1536 # Based on OpenAI embedding vector length
+  
+  # Embed tags
+
+  tags_list <- c("model","data","walkthrough","tutorial","statistics","not relevant")
+  total_n1 <- length(tags_list)
+  store_embeddings_tag <- matrix(NA,nrow=total_n1,embed_size)
+  
+  for(ii in 1:total_n1){
+    
+    input_text_tag <- tags_list[ii]
+ 
+    output_embedding_tag <- create_embedding(
+      model = "text-embedding-ada-002",
+      input = input_text_tag,
+      openai_api_key = credential_load$value,
+    )
+    
+    output_vec_tag <- output_embedding_tag$data$embedding[[1]]
+    
+    store_embeddings_tag[ii,] <- output_vec_tag
+    
+  }
+  
+
+  text_list <- c("case dataset","outbreak line list with cases and deaths and onset dates","case study of Ebola","learning R epidemics","inference for Poisson")
+  total_n2 <- length(text_list)
+  store_embeddings_text <- matrix(NA,nrow=total_n2,embed_size)
+  
+  for(ii in 1:total_n2){
+
+    input_text_text <- text_list[ii]
+    
+    output_embedding_text <- create_embedding(
+      model = "text-embedding-ada-002",
+      input = input_text_text,
+      openai_api_key = credential_load$value,
+    )
+    
+    output_vec_text <- output_embedding_text$data$embedding[[1]]
+    
+    store_embeddings_text[ii,] <- output_vec_text
+
+  }
+  
+  # Find the best tag for a given text entry in the above string vector
+  text_ii <- 2
+  cosine_sim <- apply(store_embeddings_tag,1,function(x){lsa::cosine(x,store_embeddings_text[text_ii,])})
+  sort_sim <- base::order(cosine_sim,decreasing=T)
+  
+  c(text_list[text_ii],tags_list[sort_sim[1]])
+  
+
+  
+  
+}
+

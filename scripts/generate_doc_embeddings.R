@@ -20,13 +20,13 @@ source("R/helper_functions.R")
 
 # Load list of packages and descriptions
 package_descriptions <- read.csv("demo/package_app/data/package_descriptions.csv")
-package_descriptions_trace <- package_descriptions |> dplyr::filter(trace_external=="trace")
+package_descriptions_trace <- package_descriptions #|> dplyr::filter(trace_external=="trace")
 
 # Generate embeddings -----------------------------------------------------
 
 # Load files and chunk into segments of length `chunk_length`
 
-load_and_chunk(package_descriptions_trace$value,chunk_length=4000)
+load_and_chunk(package_descriptions_trace,chunk_length=4000)
 
 generate_embeddings()
 

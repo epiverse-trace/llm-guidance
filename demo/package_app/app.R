@@ -39,6 +39,7 @@ intro_prompt <- read_file("data/intro_prompt_answer.txt")
 
 # Load pre-prepped embeddings and text chunks
 package_names <- read_rds("data/chunked_text/package_names.rds")
+package_functions <- read_rds("data/chunked_text/package_functions.rds")
 package_chunks <- read_rds("data/chunked_text/package_chunks.rds") |> unlist()
 package_embeddings <- read_rds("data/embeddings/package_chunk_embeddings.rds")
 
@@ -92,9 +93,11 @@ ui <- fluidPage(
     hidden(
       div(id = "output-response1",style = "width: 600px; max-width: 100%; margin: 0 auto;",
         div(
-          class = "well",style = "height: 300px;",
+          class = "well",#style = "height: 300px;",
           strong(textOutput("user_question")),
-          verbatimTextOutput("api_response_name"),
+          br(),
+          textOutput("api_response_name"),
+          br(),
           textOutput("api_response_description"),
           br(),
           fluidRow(
@@ -109,21 +112,21 @@ ui <- fluidPage(
     ),
   
   # Output response
-  # hidden(
-  #   div(id = "output-response2",style = "width: 600px; max-width: 100%; margin: 0 auto;",
-  #       div(
-  #         class = "well",
-  #         p(strong("Suggested functions:")),
-  #         #textOutput("generated_answer")
-  #         uiOutput("generated_answer")
-  #       )
-  #   )
-  # ),
-  # 
-  # div(class = "text-center",
-  #     br(),
-  #     p(em("Output generated using the OpenAI API."))
-  # )
+  hidden(
+    div(id = "output-response2",style = "width: 600px; max-width: 100%; margin: 0 auto;",
+        div(
+          class = "well",
+          p(strong("Suggested functions:")),
+          #textOutput("generated_answer")
+          uiOutput("generated_answer")
+        )
+    )
+  ),
+
+  div(class = "text-center",
+      br(),
+      p(em("Output generated using the OpenAI API."))
+  )
   # 
 
     
@@ -148,7 +151,7 @@ server <- function(input, output, session) {
     # Test with query
     query_text <-  input$question_text
     
-    # DEBUG: query_text <- "case of full immunization being after death date"
+    # DEBUG: query_text <- "calculate reproduction number"
     
     query_embedding <- create_embedding(
       model = "text-embedding-ada-002",
@@ -169,7 +172,17 @@ server <- function(input, output, session) {
     top_pick <- sort_sim[1:n_match]
     top_packages <- package_names[top_pick]
     pick_package <- top_packages[1] #names(which.max(table(top_packages))) 
-
+    pick_function <- package_functions[top_pick][1]
+    
+    # Get file type
+    if(substr(pick_function,nchar(pick_function),nchar(pick_function))=="R"){
+      ftype <- "function"
+      fname <- paste0(substr(pick_function,1,nchar(pick_function)-2),"()")
+    }else{
+      ftype <- "vignette"
+      fname <- substr(pick_function,1,nchar(pick_function)-4)
+    }
+    
     # Extract top entries from best matching packages
     package_match <- which(package_names==pick_package)
 
@@ -189,9 +202,9 @@ server <- function(input, output, session) {
     # package_text()
     # package_link()
     
-    output$user_question <- renderText({ paste0("You wrote: \"", query_text,"\". Here's a suggested package:") })
+    output$user_question <- renderText({ paste0("You wrote: \"", query_text,"\".") })
     
-    output$api_response_name <- renderText({ pick_package })
+    output$api_response_name <- renderText({ paste0("Have a look at the \"",fname,"\" ",ftype," from the {",pick_package,"} package.") })
     
     output$api_response_description <- renderText({ best_match$description})
     
@@ -203,8 +216,8 @@ server <- function(input, output, session) {
 
     
     #waiter_show(id="output-response2",html=wait_screen2,color="#80a0cc")
-    
-    # Generate answer
+    # GPT 4 generation code
+    # # Generate answer
     # llm_completion_med <- create_chat_completion(
     #   model = "gpt-4", #"gpt-4", # "text-davinci-003", #gpt-3.5-turbo
     #   messages = list(list("role"="system","content" = intro_prompt_sys),
@@ -223,13 +236,14 @@ server <- function(input, output, session) {
     # 
     # # Generate UI object with includeMarkdown
     # # output$generated_answer <- renderText({ generated_a })
-    # # 
+    # #
     # output$generated_answer <- renderUI({
     #   HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
     # })
-    
+    # 
 
     shinyjs::show("output-response1")
+    #shinyjs::show("output-response2")
     shinyjs::hide("package-explorer")
 
     waiter_hide()
@@ -240,6 +254,7 @@ server <- function(input, output, session) {
   observeEvent(input$return_button,{
     
     shinyjs::hide("output-response1")
+    #shinyjs::hide("output-response2")
     shinyjs::show("package-explorer")
     
   })
