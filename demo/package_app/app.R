@@ -84,7 +84,8 @@ ui <- fluidPage(
         placeholder = "Enter text",
         height = "100px"
       ),
-      actionButton("question_button","Search packages",class="btn-primary")
+      actionButton("question_button","Search packages",class="btn-primary"),
+      checkboxInput("code_generate","Generate code as well as suggest function/vignette (note: this is slower)",value=F)
       )
     )
   ),
@@ -217,33 +218,36 @@ server <- function(input, output, session) {
     
     #waiter_show(id="output-response2",html=wait_screen2,color="#80a0cc")
     # GPT 4 generation code
-    # # Generate answer
-    # llm_completion_med <- create_chat_completion(
-    #   model = "gpt-4", #"gpt-4", # "text-davinci-003", #gpt-3.5-turbo
-    #   messages = list(list("role"="system","content" = intro_prompt_sys),
-    #                   list("role"="user","content" = paste0(intro_prompt,
-    #                                                         "Context: ",context_text,
-    #                                                         "Question: ",query_text,
-    #                                                         "Answer:"))
-    #   ),
-    #   temperature = 0,
-    #   openai_api_key = credential_load$value,
-    #   max_tokens = 1000
-    # )
-    # 
-    # # Extract response
-    # generated_a <- llm_completion_med$choices$message.content
-    # 
-    # # Generate UI object with includeMarkdown
-    # # output$generated_answer <- renderText({ generated_a })
-    # #
-    # output$generated_answer <- renderUI({
-    #   HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
-    # })
-    # 
+    
+    if(input$code_generate==T){
+      # Generate answer
+      llm_completion_med <- create_chat_completion(
+        model = "gpt-4", #"gpt-4", # "text-davinci-003", #gpt-3.5-turbo
+        messages = list(list("role"="system","content" = intro_prompt_sys),
+                        list("role"="user","content" = paste0(intro_prompt,
+                                                              "Context: ",context_text,
+                                                              "Question: ",query_text,
+                                                              "Answer:"))
+        ),
+        temperature = 0,
+        openai_api_key = credential_load$value,
+        max_tokens = 1000
+      )
+  
+      # Extract response
+      generated_a <- llm_completion_med$choices$message.content
+  
+      # Generate UI object with includeMarkdown
+
+      output$generated_answer <- renderUI({
+        HTML(markdownToHTML(text = generated_a, fragment.only = TRUE))
+      })
+    
+      shinyjs::show("output-response2")
+    }
+
 
     shinyjs::show("output-response1")
-    #shinyjs::show("output-response2")
     shinyjs::hide("package-explorer")
 
     waiter_hide()
@@ -254,7 +258,7 @@ server <- function(input, output, session) {
   observeEvent(input$return_button,{
     
     shinyjs::hide("output-response1")
-    #shinyjs::hide("output-response2")
+    shinyjs::hide("output-response2")
     shinyjs::show("package-explorer")
     
   })
