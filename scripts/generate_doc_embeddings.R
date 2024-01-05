@@ -10,7 +10,9 @@ library(tools)
 
 setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/")
 
-credential_load <- read.csv("data/credentials.csv")
+# Define credentials
+github_pat <- Sys.getenv("GITHUB_PAT")
+openai_key <- Sys.getenv("OPENAI_API_KEY")
 
 # Load helper functions
 source("R/helper_functions.R")
@@ -20,7 +22,7 @@ source("R/helper_functions.R")
 
 # Load list of packages and descriptions
 package_descriptions <- read.csv("demo/package_app/data/package_descriptions.csv")
-package_descriptions_trace <- package_descriptions #|> dplyr::filter(trace_external=="trace")
+package_descriptions_trace <- package_descriptions |> dplyr::filter(trace_external=="trace" | trace_external=="epiforecasts")
 
 # Generate embeddings -----------------------------------------------------
 
@@ -28,7 +30,7 @@ package_descriptions_trace <- package_descriptions #|> dplyr::filter(trace_exter
 
 load_and_chunk(package_descriptions_trace,chunk_length=4000)
 
-generate_embeddings()
+generate_embeddings(file_path="data/chunked_text/")
 
 
 # Unused code for answer generation -----------------------------------------------------

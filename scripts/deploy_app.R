@@ -6,7 +6,7 @@
 library(shiny); library(rsconnect)
 
 setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/demo/package_app")
-setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/demo/embedding_app")
+#setwd("~/Documents/GitHub/epiverse-trace/llm-guidance/demo/embedding_app")
 
 # Run app locally
 runApp()

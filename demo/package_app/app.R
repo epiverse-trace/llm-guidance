@@ -152,13 +152,15 @@ server <- function(input, output, session) {
     # Test with query
     query_text <-  input$question_text
     
-    # DEBUG: query_text <- "calculate reproduction number"
+    # DEBUG: query_text <- "Calculate the reproduction number"
     
     query_embedding <- create_embedding(
       model = "text-embedding-ada-002",
       input = query_text,
       openai_api_key = credential_load$value,
     )
+    
+    cosine(query_embedding$data$embedding[[1]],query_embedding2$data$embedding[[1]])
   
     
     # Define embedding vector for query

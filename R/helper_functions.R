@@ -14,11 +14,11 @@ split_string <- function(input_string, max_length = 2000) {
   return(result)
 }
 
-# Load text from package -----------------------------------------
+# Load text from package locally -----------------------------------------
 
-load_text_from_package <- function(package_name="finalsize",package_type="trace",chunk_length=4000){
+load_text_from_package_local <- function(package_name="finalsize",package_type="trace",chunk_length=4000){
   
-  #DEBUG package_name="incidence2"; package_type="external"; base_path="~/Documents/GitHub/epiverse-trace/"
+  #DEBUG package_name="finalsize"; package_type="trace"; base_path="~/Documents/GitHub/epiverse-trace/"
   
   if(package_type=="trace"){
     base_path="~/Documents/GitHub/epiverse-trace/"
@@ -73,12 +73,61 @@ load_text_from_package <- function(package_name="finalsize",package_type="trace"
     }
     
   }
+
+  list(package = package_name, name_out = store_name, text_out = store_chunks)
   
-  # If want single package output
-  #write_lines(store_text, paste0("data/chunked_text/",package_name, ".md"))
-  #write_csv(data.frame(store_text), paste0("data/chunked_text/",package_name, ".csv"))
+}
+
+
+# Load text from package URL -----------------------------------------
+
+load_text_from_package <- function(input_url="https://github.com/epiverse-trace/finalsize",
+                                   folder_type="R",
+                                   chunk_length=4000){
   
+  # DEBUG: input_url="https://github.com/epiverse-trace/finalsize"; folder_type="R"; chunk_length=4000
+
+  # Input GitHub URL
+  github_url <- input_url
   
+  # GitHub API URL for the content of the folder
+  api_url <- gsub("https://github.com", "https://api.github.com/repos", github_url)
+  api_url <- paste0(api_url, "/contents/",folder_type)
+  
+  # Make an API request to get the list of files in the directory
+  response <- GET(api_url,add_headers(Authorization = paste("token", github_pat)))
+  files_info <- fromJSON(rawToChar(response$content))
+  
+  # Extract the relevant files from the folder
+  if(folder_type=="R"){r_files_urls <- files_info$download_url[grepl(paste0("\\.R$"), files_info$name)]}
+  if(folder_type=="vignettes"){r_files_urls <- files_info$download_url[grepl(paste0("\\.Rmd$"), files_info$name)]}
+  
+  # Download and read the contents of each R file
+  r_files_contents <- lapply(r_files_urls, function(url) {
+    read_lines(url)
+  })
+
+  # Set up text vector and storage of specific functions
+  store_text <- NULL
+  store_name <- NULL
+  store_chunks <- list()
+
+  for(ii in 1:length(r_files_contents)){
+    text_ii <- r_files_contents[ii]
+    
+    # Get number of chunks
+    chunk_text <- split_string(paste(text_ii[[1]],collapse=""),chunk_length)[[1]]
+    store_chunks <- c(store_chunks,chunk_text)
+    n_chunk <- length(chunk_text)
+    
+    #store_text <- paste(store_text,rep(text_ii,n_chunk) )
+    store_name <- c(store_name,rep(files_info$name[ii],n_chunk))
+  }
+
+  package_name <- sub(".*/", "", input_url)
+  
+  print(paste0("Completed extraction for ",package_name," ",folder_type," files"))
+
   list(package = package_name, name_out = store_name, text_out = store_chunks)
   
 }
@@ -96,17 +145,23 @@ load_and_chunk <- function(package_list,chunk_length=4000){
   # Iterate over packages
   for(ii in 1:nrow(package_list)){
 
-    get_text <- load_text_from_package(package_list[ii,"value"],package_list[ii,"trace_external"],chunk_length)
+    #get_text <- load_text_from_package(package_list[ii,"value"],package_list[ii,"trace_external"],chunk_length)
     
-    if(!is.null(get_text$text_out)){
-
+    # Load R and vignettes
+    get_text1 <- load_text_from_package(input_url=package_list[ii,"link"],folder_type="R",chunk_length)
+    get_text2 <- load_text_from_package(input_url=package_list[ii,"link"],folder_type="vignettes",chunk_length)
+    
+    if(!is.null(get_text1$text_out)){
       # Store package names and chunks
-      list_names <- c(list_names,rep(get_text$package,length(get_text$name_out)))
-      list_functions <- c(list_functions,get_text$name_out)
-      list_chunks <- append(list_chunks,get_text$text_out)
+      list_names <- c(list_names,rep(get_text1$package,length(get_text1$name_out)),rep(get_text2$package,length(get_text2$name_out)))
+      list_functions <- c(list_functions,get_text1$name_out,get_text2$name_out)
+      list_chunks <- append(list_chunks,get_text1$text_out); list_chunks <- append(list_chunks,get_text2$text_out)
     }
     
   }
+  
+  # Check lengths
+  if(length(list_names)!=length(list_functions) | length(list_names)!=length(list_chunks)){print("mismatch in lengths")}
   
   
   write_rds(list_names,paste0("data/chunked_text/package_names.rds"))
@@ -119,12 +174,10 @@ load_and_chunk <- function(package_list,chunk_length=4000){
 
 # Run embeddings -----------------------------------------
 
-generate_embeddings <- function(){
-  
+generate_embeddings <- function(file_path="data/chunked_text/"){
+
   # Load files
-  #list_names <- read_rds("data/chunked_text/package_names.rds")
-  #list_functions <- read_rds("data/chunked_text/package_functions.rds")
-  list_chunks <- read_rds("data/chunked_text/package_chunks.rds")
+  list_chunks <- read_rds(paste0(file_path,"package_chunks.rds"))
   
   # Define OpenAI embedding vector size
   total_chunks <- length(list_chunks)
@@ -181,7 +234,7 @@ generate_embeddings_tags <- function(){
     output_embedding_tag <- create_embedding(
       model = "text-embedding-ada-002",
       input = input_text_tag,
-      openai_api_key = credential_load$value,
+      openai_api_key = openai_key,
     )
     
     output_vec_tag <- output_embedding_tag$data$embedding[[1]]
